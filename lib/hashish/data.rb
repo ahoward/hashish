@@ -9,7 +9,7 @@ module Hashish
 
     def initialize(*args, &block)
       data = self
-      options = HashWithIndifferentAccess.new(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.last.is_a?(Hash) ? args.pop : {}
 
       @key = 
         case args.size
@@ -18,7 +18,8 @@ module Hashish
           else
             args.shift
         end
-      @key ||= 'data'
+      @key ||= (options.is_a?(Data) ? options.key : 'data')
+
       @errors = Errors.new(data)
       @form = Form.new(data)
       @status = Status.ok
@@ -51,6 +52,39 @@ module Hashish
 
     def parse(params = {})
       Hashish.parse(key, params)
+    end
+
+    def apply(other)
+      Hashish.merge(other => self)
+    end
+
+    alias_method 'build', 'apply'
+
+    class << Data
+      def merge(*args)
+        if args.size == 1 and args.first.is_a?(Hash)
+          params, schema = args.first.to_a.flatten
+        else
+          params, schema, *ignored = args
+        end
+
+        params = Hashish.data(params)
+        result = Hashish.data(schema)
+
+        Hashish.depth_first_each(params) do |keys, val|
+          currently = result.get(keys)
+          result.set(keys => val) if(currently.nil? or currently.empty?)
+        end
+
+        result
+      end
+
+      def build(*args)
+        key = args.shift
+        result = merge(*args)
+        result.key = key
+        result
+      end
     end
   end
 

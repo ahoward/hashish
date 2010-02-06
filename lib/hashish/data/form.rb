@@ -176,7 +176,7 @@ module Hashish
       end
 
       def class_for(keys, klass = nil)
-        klass = [klass, 'hashish', 'errors'].compact.join(' ') if data.errors.on?(keys)
+        klass = [klass, 'alpo', 'errors'].compact.join(' ') if data.errors.on?(keys)
         klass
       end
 

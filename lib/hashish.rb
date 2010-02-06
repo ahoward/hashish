@@ -15,10 +15,9 @@
   #require 'orderedhash'
   require 'json'
 
-# hashish libs
+# alpo libs
 #
   module Hashish
-    ::H = Hashish unless defined?(::H)
     Version = '0.4.2' unless defined?(Version)
 
     def version
@@ -54,4 +53,16 @@
     load 'slug.rb'
     load 'parameter_parser.rb'
     load 'api.rb'
+  end
+
+  unless defined?(H)
+    H = Hashish
+
+    def Hashish(*args, &block)
+      Hashish.data(*args, &block)
+    end
+
+    def H(*args, &block)
+      Hashish.data(*args, &block)
+    end
   end

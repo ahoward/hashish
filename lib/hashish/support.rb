@@ -56,19 +56,10 @@ module Hashish
   end
 
   def merge(*args)
-    if args.size == 1 and args.first.is_a?(Hash)
-      params, base = args.first.to_a.flatten
-    else
-      params, base, *ignored = args
-    end
+    Data.merge(*args)
+  end
 
-    params = Hashish.hash_for(params)
-    base = Hashish.hash_for(base)
-
-    Hashish.depth_first_each(params) do |keys, val|
-      base.set(keys => val) if base.get(keys).nil?
-    end
-
-    base
+  def build(*args)
+    Data.build(*args)
   end
 end
