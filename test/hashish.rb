@@ -7,9 +7,9 @@ Testing Hashish do
   testing 'basic data can be constructed' do
     data = assert{ Hashish.data.new }
   end
-  testing 'basic data can be constructed with a key' do
-    data = assert{ Hashish.data.new('key') }
-    assert{ data.key == 'key' }
+  testing 'basic data can be constructed with a name' do
+    data = assert{ Hashish.data.new('name') }
+    assert{ data.name == 'name' }
   end
   testing 'data can be constructed with values' do
     data = assert{ Hashish.data.new(:key => :value) }

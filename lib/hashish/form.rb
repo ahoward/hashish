@@ -106,41 +106,12 @@ module Hashish
         }
       end
 
-# TODO - this needs some thinking
-#
-      def select(*args)
-        options = HashWithIndifferentAccess.new(args.last.is_a?(Hash) ? args.pop : {})
-        from = args.shift || options[:select] || options[:list] || options[:all] || data.key
-        list = data[from]
-        name = args.shift || options[:name]
-        value = options[:value] || :id
-
-        tagz {
-          select_(:name => name){
-            list.each do |element|
-              case element
-                when Array
-                  val, content, *ignored = element
-                when Hash
-                  val = element[:value]
-                  content = element[:content]
-                else
-                  val = element.send(value)
-                  content = element.respond?(name) ? element.send(name) : element.to_s
-              end
-
-              option_(:value => val){ content }
-            end
-          }
-        }
-      end
-      
       def select(*args, &block)
         options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
         keys = args.flatten
 
         name = options.delete(:name) || name_for(keys)
-        from = options.delete(:from) || options.delete(:select) || options.delete(:all) || options.delete(:list) || data.key
+        from = options.delete(:from) || options.delete(:select) || options.delete(:all) || options.delete(:list) || data.name
 
         id = options.delete(:id) || id_for(keys)
         klass = class_for(keys, options.delete(:class))
@@ -171,7 +142,7 @@ module Hashish
       end
 
       def id_for(keys)
-        id = [data.key, keys.join('-')].compact.join('_')
+        id = [data.name, keys.join('-')].compact.join('_')
         Slug.for(id)
       end
 
@@ -196,7 +167,7 @@ module Hashish
       end
 
       def name_for(keys)
-        "#{ data.key }(#{ Array(keys).flatten.compact.join(',') })"
+        "#{ data.name }(#{ Array(keys).flatten.compact.join(',') })"
       end
     end
   end

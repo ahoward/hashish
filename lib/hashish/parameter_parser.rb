@@ -1,14 +1,14 @@
 module Hashish
   module ParameterParser
-    def parse_params(key = 'data', hash = {}, &block)
-      key = key.to_s
-      data = Hashish::Data.new(key)
+    def parse_params(name = 'data', hash = {}, &block)
+      name = name.to_s
+      data = Hashish::Data.new(name)
       hash = HashWithIndifferentAccess.new.update(hash)
-      base = hash[key]
+      base = hash[name]
       data.update(base) if base
 
-      key = data.key
-      re = %r/^ #{ Regexp.escape(key) } (?: [(] ([^)]+) [)] )? $/x
+      name = data.name
+      re = %r/^ #{ Regexp.escape(name) } (?: [(] ([^)]+) [)] )? $/x
       missing = true
 
       hash.each do |key, value|

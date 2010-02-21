@@ -2,7 +2,7 @@ module Hashish
   class Data < HashWithIndifferentAccess
     include HashMethods
 
-    attr_accessor :key
+    attr_accessor :name
     attr_accessor :errors
     attr_accessor :form
     attr_writer :status
@@ -11,14 +11,14 @@ module Hashish
       data = self
       options = args.last.is_a?(Hash) ? args.pop : {}
 
-      @key = 
+      @name = 
         case args.size
           when 0
             options.keys.first if options.size==1
           else
             args.shift
         end
-      @key ||= (options.is_a?(Data) ? options.key : 'data')
+      @name ||= (options.is_a?(Data) ? options.name : 'data')
 
       @errors = Errors.new(data)
       @form = Form.new(data)
@@ -47,11 +47,11 @@ module Hashish
     end
 
     def model_name
-      key.to_s
+      name.to_s
     end
 
     def parse(params = {})
-      Hashish.parse(key, params)
+      Hashish.parse(name, params)
     end
 
     def apply(other)
@@ -80,9 +80,9 @@ module Hashish
       end
 
       def build(*args)
-        key = args.shift
+        name = args.shift
         result = apply(*args)
-        result.key = key
+        result.name = name
         result
       end
     end
