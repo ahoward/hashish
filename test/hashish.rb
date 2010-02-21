@@ -118,6 +118,26 @@ Testing Hashish do
     assert{ parsed =~ expected }
   end
 
+# schema
+#
+  testing 'schema with defaults' do
+    params = {:n => 42.0}
+    schema =
+     H(:data,
+       {
+       :a => {
+         :b => 42
+       },
+       :n => 0
+       }
+     )
+
+      result = schema.apply(params)
+      assert{ result[:n] == 42.0 }
+      assert{ result.get(:a,:b) == 42 }
+  end
+ 
+
 end
 
 

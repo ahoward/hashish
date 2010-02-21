@@ -55,8 +55,8 @@ module Hashish
     data.form
   end
 
-  def merge(*args)
-    Data.merge(*args)
+  def apply(*args)
+    Data.apply(*args)
   end
 
   def build(*args)

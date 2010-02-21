@@ -55,13 +55,13 @@ module Hashish
     end
 
     def apply(other)
-      Hashish.merge(other => self)
+      Data.apply(other => self)
     end
 
     alias_method 'build', 'apply'
 
     class << Data
-      def merge(*args)
+      def apply(*args)
         if args.size == 1 and args.first.is_a?(Hash)
           params, schema = args.first.to_a.flatten
         else
@@ -72,8 +72,8 @@ module Hashish
         result = Hashish.data(schema)
 
         Hashish.depth_first_each(params) do |keys, val|
-          currently = result.get(keys)
-          result.set(keys => val) if(currently.nil? or currently.empty?)
+          #currently = result.get(keys)
+          result.set(keys => val) #if(currently.nil? or currently.empty?)
         end
 
         result
@@ -81,7 +81,7 @@ module Hashish
 
       def build(*args)
         key = args.shift
-        result = merge(*args)
+        result = apply(*args)
         result.key = key
         result
       end
