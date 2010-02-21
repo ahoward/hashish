@@ -48,7 +48,7 @@
     load 'hash_with_indifferent_access.rb'
     load 'hash_methods.rb'
     load 'data.rb'
-    load 'data/form.rb'
+    load 'form.rb'
     load 'errors.rb'
     load 'slug.rb'
     load 'parameter_parser.rb'
