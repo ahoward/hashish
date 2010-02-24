@@ -68,8 +68,8 @@ module Hashish
           params, schema, *ignored = args
         end
 
-        params = Hashish.data(params)
-        result = Hashish.data(schema)
+        params = Hashish.data(schema.name, params)
+        result = Hashish.data(schema.name, schema)
 
         Hashish.depth_first_each(params) do |keys, val|
           #currently = result.get(keys)
