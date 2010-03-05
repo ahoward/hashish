@@ -34,7 +34,7 @@ if defined?(Rails)
         attrs = args.empty? ? model.to_hashish : args
 
         attrs.each do |attr|
-          value = self.send(attr)
+          value = read_attribute(attr)
 
           if value.respond_to?(:to_hashish)
             hash[attr] = value.to_hashish

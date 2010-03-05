@@ -4,8 +4,8 @@ module Hashish
     include Tagz.globally
     extend Tagz.globally
 
-    All = '*'
-    Separator = ':'
+    All = '*' unless defined?(All)
+    Separator = ':' unless defined?(Separator)
 
     attr 'data'
 
