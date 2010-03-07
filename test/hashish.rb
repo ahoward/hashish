@@ -138,6 +138,32 @@ Testing Hashish do
   end
  
 
+# hash_methods.rb
+#
+  testing 'has? on simple hash' do
+    d = Hashish.data(:name, :key => :val)
+    assert{ d.has?(:key) }
+    assert{ !d.has?(:missing) }
+  end
+
+  testing 'has? on nested hash' do
+    d = Hashish.data(:name, :key => {:key2 => :val})
+    assert{ d.has?(:key, :key2) }
+    assert{ !d.has?(:key, :missing) }
+  end
+
+  testing 'has? on simple array' do
+    d = Hashish.data(:name, :array => [0])
+    assert{ d.has?(:array,0) }
+    assert{ !d.has?(:array,1) }
+  end
+
+  testing 'has? on nested array' do
+    d = Hashish.data(:name, :nested => {:array => [0]})
+    assert{ d.has?(:nested, :array, 0) }
+    assert{ !d.has?(:nested, :array, 1) }
+  end
+
 end
 
 

@@ -15,16 +15,26 @@ module Hashish
 
     def has?(*keys)
       keys = keys.flatten
-      return self.has_key?(keys.first) if keys.size <= 1
-      keys, key = keys[0..-2], keys[-1]
       collection = self
+      return collection_has_key?(collection, keys.first) if keys.size <= 1
+      keys, key = keys[0..-2], keys[-1]
       keys.each do |k|
         k = key_for(k)
         collection = collection[k]
         return collection unless collection.respond_to?('[]')
       end
-      return false unless collection.respond_to?('has_key?')
-      collection.has_key?(key_for(key))
+      return false unless(collection.is_a?(Hash) or collection.is_a?(Array))
+      collection_has_key?(collection, key_for(key))
+    end
+
+    def collection_has_key?(collection, key)
+      case collection
+        when Hash
+          collection.has_key?(key)
+        when Array
+          return false unless key
+          (0...collection.size).include?(Integer(key))
+      end
     end
 
     def set(*args)
