@@ -1,6 +1,8 @@
 module Hashish
   module ParameterParser
-    def parse_params(name = 'data', hash = {}, &block)
+    def parse_params(*args, &block)
+      hash = args.last.is_a?(Hash) ? args.pop : {}
+      name = args.empty? ? 'data' : args.shift
       name = name.to_s
       data = Hashish::Data.new(name)
       hash = HashWithIndifferentAccess.new.update(hash)

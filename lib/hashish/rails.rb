@@ -1,5 +1,6 @@
 if defined?(Rails)
 
+begin
   ActiveRecord
   ActiveRecord::Base
 
@@ -55,5 +56,8 @@ if defined?(Rails)
       alias_method 'to_h', 'to_hashish'
     end
   end
+rescue NameError
+  nil
+end
 
 end
