@@ -1,33 +1,28 @@
 if defined?(Rails)
 
-begin
-  ActiveRecord
-  ActiveRecord::Base
+  module ToHashish
+    module ClassMethods
+      def to_hashish(*args)
 
-  module ActiveRecord
-    class Base
-      class << self 
-        def to_hashish(*args)
+        @to_hashish ||= (
+          column_names # + reflect_on_all_associations.map(&:name)
+        ).map{|name| name.to_s}
 
-          @to_hashish ||= (
-            column_names + reflect_on_all_associations.map(&:name)
-          ).map{|name| name.to_s}
-
-          unless args.empty?
-            @to_hashish.clear
-            args.flatten.compact.each do |arg|
-              @to_hashish.push(arg.to_s)
-            end
-            @to_hashish.uniq!
-            @to_hashish.map!{|name| name.to_s}
+        unless args.empty?
+          @to_hashish.clear
+          args.flatten.compact.each do |arg|
+            @to_hashish.push(arg.to_s)
           end
-
-          @to_hashish
+          @to_hashish.uniq!
+          @to_hashish.map!{|name| name.to_s}
         end
 
-        alias_method 'to_h', 'to_hashish'
+        @to_hashish
       end
+      alias_method 'to_h', 'to_hashish'
+    end
 
+    module InstanceMethods
       def to_hashish(*args)
         hash = Hashish.data
         model = self.class
@@ -50,14 +45,37 @@ begin
           hash[attr] = value
         end
 
+        if hash.has_key?(:_id) and not hash.has_key?(:id)
+          hash[:id] = hash[:_id]
+        end
+
         hash
       end
-
       alias_method 'to_h', 'to_hashish'
     end
   end
-rescue NameError
-  nil
-end
+
+  begin
+    ActiveRecord
+    ActiveRecord::Base
+  rescue NameError
+    nil
+  end
+
+  begin
+    MongoMapper
+  rescue NameError
+    nil
+  end
+
+  if defined?(ActiveRecord)
+    ActiveRecord::Base.send(:extend, ToHashish::ClassMethods)
+    ActiveRecord::Base.send(:include, ToHashish::InstanceMethods)
+  end
+
+  if defined?(MongoMapper)
+    MongoMapper::Document::ClassMethods.send(:include, ToHashish::ClassMethods)
+    MongoMapper::Document::InstanceMethods.send(:include, ToHashish::InstanceMethods)
+  end
 
 end
