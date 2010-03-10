@@ -94,4 +94,6 @@ module Hashish
     block.call(data) if block
     data
   end
+
+  alias_method 'hash', 'data'
 end
