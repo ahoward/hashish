@@ -122,7 +122,7 @@ module Hashish
 
       at_least_one = false
       names = errors.map{|e| e.data._name}
-      klass = [names, 'alpo errors'].flatten.compact.join(' ')
+      klass = [names, 'hashish errors'].flatten.compact.join(' ')
 
       html =
         table_(:class => klass){
@@ -161,7 +161,7 @@ module Hashish
 
       at_least_one = false
       names = errors.map{|e| e.data._name}
-      klass = [names, 'alpo errors'].flatten.compact.join(' ')
+      klass = [names, 'hashish errors'].flatten.compact.join(' ')
 
       html =
         ul_(:class => klass){
