@@ -15,7 +15,7 @@
   #require 'orderedhash'
   require 'json'
 
-# alpo libs
+# hashish libs
 #
   module Hashish
     Version = '0.4.2' unless defined?(Version)

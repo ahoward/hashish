@@ -13,6 +13,25 @@ module Hashish
         data.errors
       end
 
+      def form(*args, &block)
+        options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+        keys = args.flatten
+
+        action = options.delete(:action) || '#'
+        method = options.delete(:method) || 'post'
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+
+        content =
+          if block.nil? and !options.has_key?(:content)
+            ''
+          else
+            block ? block.call(form=self) : options.delete(:content)
+          end
+
+        form_(options_for(options, :action => action, :method => method, :class => klass, :id => id)){ content }
+      end
+
       def label(*args, &block)
         options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
         keys = args.flatten
@@ -141,13 +160,14 @@ module Hashish
         }
       end
 
+
       def id_for(keys)
         id = [data.name, keys.join('-')].compact.join('_')
-        Slug.for(id)
+        Slug.for(id).sub(/_+$/, '')
       end
 
       def class_for(keys, klass = nil)
-        klass = [klass, 'alpo', 'errors'].compact.join(' ') if data.errors.on?(keys)
+        klass = [klass, 'hashish', 'errors'].compact.join(' ') if data.errors.on?(keys)
         klass
       end
 

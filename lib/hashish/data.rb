@@ -4,7 +4,7 @@ module Hashish
 
     attr_accessor :name
     attr_accessor :errors
-    attr_accessor :form
+    attr_reader :form
     attr_writer :status
 
     def initialize(*args, &block)
@@ -31,8 +31,12 @@ module Hashish
       Status.for(@status)
     end
 
+    def form(*args, &block)
+      return @form if(args.empty? and block.nil?)
+      @form.form(*args, &block)
+    end
+
     alias_method 'error', 'errors'
-    alias_method 'f', 'form'
 
     def valid?()
       errors.empty? and status.ok?
