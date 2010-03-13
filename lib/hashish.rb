@@ -53,7 +53,8 @@
     load 'slug.rb'
     load 'parameter_parser.rb'
     load 'api.rb'
-    load 'rails.rb' if defined?(Rails)
+    load 'mongo_mapper.rb'
+    load 'active_record.rb'
   end
 
   unless defined?(H)
