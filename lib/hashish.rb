@@ -50,6 +50,7 @@
     load 'data.rb'
     load 'form.rb'
     load 'errors.rb'
+    load 'validations.rb'
     load 'slug.rb'
     load 'parameter_parser.rb'
     load 'api.rb'

@@ -4,6 +4,7 @@ module Hashish
 
     attr_accessor :name
     attr_accessor :errors
+    attr_accessor :validations
     attr_reader :form
     attr_writer :status
 
@@ -21,6 +22,7 @@ module Hashish
       @name ||= (options.is_a?(Data) ? options.name : 'data')
 
       @errors = Errors.new(data)
+      @validations = Validations.new(data)
       @form = Form.new(data)
       @status = Status.ok
 
@@ -39,7 +41,11 @@ module Hashish
     alias_method 'error', 'errors'
 
     def valid?()
-      errors.empty? and status.ok?
+      validations.run! and errors.empty? and status.ok?
+    end
+
+    def validates(*args, &block)
+      validations.add(*args, &block)
     end
 
     def id
@@ -63,6 +69,30 @@ module Hashish
     end
 
     alias_method 'build', 'apply'
+
+
+    unless Object.new.respond_to?(:instance_exec)
+      module InstanceExecHelper; end
+      include InstanceExecHelper
+
+      def instance_exec(*args, &block)
+        begin
+          old_critical, Thread.critical = Thread.critical, true
+          n = 0
+          n += 1 while respond_to?(mname="__instance_exec_#{ n }__")
+          InstanceExecHelper.module_eval{ define_method(mname, &block) }
+        ensure
+          Thread.critical = old_critical
+        end
+        begin
+          ret = send(mname, *args)
+        ensure
+          InstanceExecHelper.module_eval{ remove_method(mname) } rescue nil
+        end
+        ret
+      end
+    end
+
 
     class << Data
       def apply(*args)
