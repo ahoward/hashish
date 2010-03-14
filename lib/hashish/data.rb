@@ -41,11 +41,16 @@ module Hashish
     alias_method 'error', 'errors'
 
     def valid?()
-      validations.run! and errors.empty? and status.ok?
+      validate! and errors.empty? and status.ok?
     end
 
     def validates(*args, &block)
       validations.add(*args, &block)
+    end
+
+    def validate!
+      validations.run!
+      errors.empty?
     end
 
     def id
@@ -54,6 +59,10 @@ module Hashish
 
     def new_record?
       !!id
+    end
+
+    def type
+      self[:type] || self[:_type] || super
     end
 
     def model_name

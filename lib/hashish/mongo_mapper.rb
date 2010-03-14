@@ -5,14 +5,15 @@ rescue NameError
 end
 
 if defined?(MongoMapper)
+
   module MongoMapper
     module ToHashish
       module ClassMethods
         def to_hashish(*args)
 
-          @to_hashish ||= (
-            column_names # + reflect_on_all_associations.map(&:name)
-          ).map{|name| name.to_s}
+          unless defined?(@to_hashish)
+            @to_hashish = column_names.map{|name| name.to_s}
+          end
 
           unless args.empty?
             @to_hashish.clear
@@ -36,7 +37,7 @@ if defined?(MongoMapper)
           attrs = args.empty? ? model.to_hashish : args
 
           attrs.each do |attr|
-            value = read_attribute(attr)
+            value = send(attr)
 
             if value.respond_to?(:to_hashish)
               hash[attr] = value.to_hashish
@@ -60,8 +61,11 @@ if defined?(MongoMapper)
         alias_method 'to_h', 'to_hashish'
       end
     end
+
+    MongoMapper::Document::ClassMethods.send(:include, ToHashish::ClassMethods)
+    MongoMapper::Document::InstanceMethods.send(:include, ToHashish::InstanceMethods)
+    MongoMapper::EmbeddedDocument::ClassMethods.send(:include, ToHashish::ClassMethods)
+    MongoMapper::EmbeddedDocument::InstanceMethods.send(:include, ToHashish::InstanceMethods)
   end
 
-  MongoMapper::Document::ClassMethods.send(:include, ToHashish::ClassMethods)
-  MongoMapper::Document::InstanceMethods.send(:include, ToHashish::InstanceMethods)
 end

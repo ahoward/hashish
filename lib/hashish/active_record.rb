@@ -6,6 +6,7 @@ rescue NameError
 end
 
 if defined?(ActiveRecord)
+
   module ActiveRecord
     module ToHashish
       module ClassMethods
@@ -37,7 +38,7 @@ if defined?(ActiveRecord)
           attrs = args.empty? ? model.to_hashish : args
 
           attrs.each do |attr|
-            value = read_attribute(attr)
+            value = send(attr)
 
             if value.respond_to?(:to_hashish)
               hash[attr] = value.to_hashish
@@ -65,4 +66,5 @@ if defined?(ActiveRecord)
     ActiveRecord::Base.send(:extend, ToHashish::ClassMethods)
     ActiveRecord::Base.send(:include, ToHashish::InstanceMethods)
   end
+
 end

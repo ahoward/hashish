@@ -41,6 +41,7 @@ module Hashish
 
     def run
       depth_first_each do |keys, callback|
+        next unless callback and callback.respond_to?(:to_proc)
         value = data.get(keys)
         valid = !!data.instance_exec(value, &callback)
         message = callback.options[:message] || 'is invalid.'
@@ -54,6 +55,7 @@ module Hashish
       callback = Validations::Callback.new(options, &block)
       args.push(callback)
       set(*args)
+p :add => self
     end
   end
 end
