@@ -132,7 +132,8 @@ module Hashish
         name = name.to_s
         impl = name + '_impl'
         define_method(name) do |*args|
-          args.push(HashWithIndifferentAccess.new) if args.empty?
+          options = args.last.is_a?(Hash) ? args.pop : {}
+          args.push(Hashish.hash(options))
           catching{ send(impl, *args) }
         end
         define_method(impl, &block)
