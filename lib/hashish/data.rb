@@ -79,6 +79,10 @@ module Hashish
 
     alias_method 'build', 'apply'
 
+    def to_yaml(*args, &block)
+      Hash.new.update(self).to_yaml(*args, &block)
+    end
+
 
     unless Object.new.respond_to?(:instance_exec)
       module InstanceExecHelper; end

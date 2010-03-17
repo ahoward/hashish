@@ -1,7 +1,10 @@
 # built-in libs
 #
   require 'enumerator'
+  require 'fileutils'
   require 'pathname'
+  require 'yaml'
+  require 'yaml/store'
 
 # rubygem libs
 #
@@ -56,6 +59,7 @@
     load 'api.rb'
     load 'mongo_mapper.rb'
     load 'active_record.rb'
+    load 'db.rb'
   end
 
   unless defined?(H)
