@@ -35,7 +35,6 @@ module Hashish
     alias_method 'length', 'size'
 
     def run!
-      errors.clear
       run
     end
 
