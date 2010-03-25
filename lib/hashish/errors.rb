@@ -4,8 +4,23 @@ module Hashish
     include Tagz.globally
     extend Tagz.globally
 
-    All = '*' unless defined?(All)
+    Global = '*' unless defined?(Global)
     Separator = ':' unless defined?(Separator)
+
+    class Message < ::String
+      attr_accessor :sticky
+
+      def initialize(*args)
+        options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+        replace(args.join(' '))
+        @sticky = options[:sticky]
+      end
+
+      def sticky?
+        @sticky ||= nil
+        !!@sticky
+      end
+    end
 
     attr 'data'
 
@@ -15,23 +30,29 @@ module Hashish
 
     def add(*args)
       options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      sticky = options[:sticky]
 
       args.flatten!
       message = args.pop
       keys = args
-      keys = [All] if keys.empty?
+      keys = [Global] if keys.empty?
+      errors = Hash.new
+
+      if Array(keys) == [Global]
+        sticky = true unless options.has_key?(:sticky)
+      end
 
       if message
         if message.respond_to?(:full_messages)
           message.each do |key, msg|
-            options[key] = msg.to_s
+            errors[key] = Message.new(msg, :sticky => sticky)
           end
         else
-          options[keys] = message.to_s
+          errors[keys] = Message.new(message, :sticky => sticky)
         end
       end
 
-      options.each do |keys, message|
+      errors.each do |keys, message|
         list = get(keys)
         unless get(keys)
           set(keys => [])
@@ -40,8 +61,29 @@ module Hashish
         list.push(message)
       end
     end
-
     alias_method 'add_to_base', 'add'
+
+    def add!(*args)
+      options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      options[:sticky] = true
+      args.push(options)
+      add(*args)
+    end
+    alias_method 'add_to_base!', 'add!'
+
+    alias_method 'clear!', 'clear'
+
+    def clear
+      keep = []
+      depth_first_each do |keys, message|
+        index = keys.pop
+        args = [keys, message].flatten
+        keep.push(args) if message.sticky?
+      end
+      clear!
+    ensure
+      keep.each{|args| add!(*args)}
+    end
 
     def invalid?(*keys)
       !get(keys).nil?
@@ -77,10 +119,10 @@ module Hashish
 
       full_messages.sort! do |a,b|
         a, b = a.first, b.first
-        if a == All
-          b == All ? 0 : -1
-        elsif b == All
-          a == All ? 0 : 1
+        if a == Global
+          b == Global ? 0 : -1
+        elsif b == Global
+          a == Global ? 0 : 1
         else
           a <=> b
         end
@@ -95,7 +137,7 @@ module Hashish
 
     def messages
       messages =
-        (self[All]||[]).map{|message| message.to_s}.
+        (self[Global]||[]).map{|message| message}.
         select{|message| not message.strip.empty?}
     end
 
@@ -133,7 +175,7 @@ module Hashish
               e.full_messages.each do |key, value|
                 at_least_one = true
                 key = key.to_s
-                if key == All
+                if key == Global
                   # value = value.respond_to?(:humanize) ? value.humanize: value.capitalize
                   tr_(:colspan => 3){
                     td_(:class => 'all'){ value }
@@ -171,7 +213,7 @@ module Hashish
             e.full_messages.each do |key, value|
               at_least_one = true
               key = key.to_s
-              if key == All
+              if key == Global
                 # value = value.respond_to?(:humanize) ? value.humanize: value.capitalize
                 li_(:class => 'all'){ span_(:class => :message){ value } }
               else

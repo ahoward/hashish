@@ -40,17 +40,28 @@ module Hashish
 
     alias_method 'error', 'errors'
 
-    def valid?()
-      validate! and errors.empty? and status.ok?
-    end
-
     def validates(*args, &block)
       validations.add(*args, &block)
     end
 
-    def validate!
+    def validate
+      errors.clear
       validations.run!
       errors.empty?
+    end
+
+    def valid?(options = {})
+      validate and errors.empty? and status.ok?
+    end
+
+    def validate!
+      errors.clear!
+      validations.run!
+      errors.empty?
+    end
+
+    def valid!(options = {})
+      validate! and errors.empty? and status.ok?
     end
 
     def id

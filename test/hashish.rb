@@ -164,6 +164,36 @@ Testing Hashish do
     assert{ !d.has?(:nested, :array, 1) }
   end
 
+
+# errors.rb
+#
+  testing 'that clear does not drop sticky errors' do
+    errors = Hashish::Errors.new
+    errors.add! 'sticky', 'error'
+    errors.add 'not-sticky', 'error'
+    errors.clear
+    assert{ errors['sticky'].first == 'error' }
+    assert{ errors['not-sticky'].nil? }
+  end
+
+  testing 'that clear! ***does*** drop sticky errors' do
+    errors = Hashish::Errors.new
+    errors.add! 'sticky', 'error'
+    errors.add 'not-sticky', 'error'
+    errors.clear!
+    assert{ errors['sticky'].nil? }
+    assert{ errors['not-sticky'].nil? }
+  end
+
+  testing 'that global errors are sticky' do
+    errors = Hashish::Errors.new
+    global = Hashish::Errors::Global
+    errors.add! 'global-error'
+    errors.clear
+    assert{ errors[global].first == 'global-error' }
+    errors.clear!
+    assert{ errors[global].nil? }
+  end
 end
 
 
