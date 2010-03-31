@@ -154,4 +154,5 @@ module Hashish
   end
 
   alias_method 'hash', 'data'
+  alias_method 'schema', 'data'
 end
