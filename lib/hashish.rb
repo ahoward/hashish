@@ -21,7 +21,7 @@
 # hashish libs
 #
   module Hashish
-    Version = '0.4.2' unless defined?(Version)
+    Version = '0.4.3' unless defined?(Version)
 
     def version
       Hashish::Version
