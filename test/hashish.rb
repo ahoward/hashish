@@ -167,6 +167,11 @@ Testing Hashish do
     assert{ !d.has?(:nested, :array, 1) }
   end
 
+  testing 'blank? on empty data' do
+    d = Hashish.data
+    assert{ d.blank? }
+  end
+
 
 # errors.rb
 #
