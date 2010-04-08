@@ -89,6 +89,25 @@ Testing Hashish do
     }
     assert{ data.to_array == [40,2] }
   end
+  testing "new? on non-id'd data" do
+    d = Hashish.data
+    assert{ !d.new? }
+  end
+  testing "new? on id'd data" do
+    d = Hashish.data(:id => 42)
+    assert{ d.new? }
+  end
+  testing "blank? on empty data" do
+    assert{ Hashish.data.blank? }
+  end
+  testing "blank? on non-empty, but blank, data" do
+    assert{ Hashish.data(:key => nil).blank? }
+    assert{ Hashish.data(:key => []).blank? }
+    assert{ Hashish.data(:key => {}).blank? }
+    assert{ Hashish.data(:key => 0).blank? }
+    assert{ Hashish.data(:key => [[nil],[[]]]).blank? }
+    assert{ Hashish.data(:key => {:a => nil}).blank? }
+  end
 
 
 # parser
@@ -167,10 +186,6 @@ Testing Hashish do
     assert{ !d.has?(:nested, :array, 1) }
   end
 
-  testing 'blank? on empty data' do
-    d = Hashish.data
-    assert{ d.blank? }
-  end
 
 
 # errors.rb

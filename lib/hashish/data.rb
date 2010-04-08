@@ -72,6 +72,30 @@ module Hashish
       !!id
     end
 
+    alias_method 'new?', 'new_record?'
+
+    def blank?
+      depth_first_each do |keys, value|
+        is_blank = 
+          if value.respond_to?(:blank?)
+            value.blank?
+          else
+            case value
+              when 0, 0.0, nil, false, '', [], {}
+                true
+              when String
+                value.strip.empty?
+              when Array
+                value.join.empty?
+              when Numeric
+                value.to_i == 0
+            end
+          end
+        return false unless is_blank
+      end
+      return true
+    end
+
     def type
       self[:type] || self[:_type] || super
     end
