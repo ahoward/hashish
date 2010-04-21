@@ -217,4 +217,31 @@ Testing Hashish do
     errors.clear!
     assert{ errors[global].nil? }
   end
+
+# validations
+#
+  testing 'that simple validations work' do
+    data = Hashish.data
+    assert{ data.validates(:password){|password| password == 'haxor'} }
+    data.set(:password, 'fubar')
+    assert{ not data.valid? }
+  end
+
+# validating
+#
+  testing 'that validations can be cleared and do not clobber manually added errors' do
+    data = Hashish.data
+    assert{ data.validates(:email){|email| email.to_s.split(/@/).size == 2} }
+    assert{ data.validates(:password){|password| password == 'haxor'} }
+
+    data.set(:email => 'ara@dojo4.com', :password => 'fubar')
+    assert{ not data.valid? }
+
+    data.set(:password => 'haxor')
+    assert{ data.valid? }
+
+    data.errors.add(:name, 'ara')
+    assert{ not data.valid? }
+  end
+
 end

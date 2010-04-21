@@ -45,8 +45,7 @@ module Hashish
     end
 
     def validate
-      errors.clear
-      validations.run!
+      validations.run
       errors.empty?
     end
 
@@ -55,7 +54,6 @@ module Hashish
     end
 
     def validate!
-      errors.clear!
       validations.run!
       errors.empty?
     end
@@ -111,13 +109,11 @@ module Hashish
     def apply(other)
       Data.apply(other => self)
     end
-
     alias_method 'build', 'apply'
 
     def to_yaml(*args, &block)
       Hash.new.update(self).to_yaml(*args, &block)
     end
-
 
     unless Object.new.respond_to?(:instance_exec)
       module InstanceExecHelper; end
@@ -145,15 +141,15 @@ module Hashish
     class << Data
       def apply(*args)
         if args.size == 1 and args.first.is_a?(Hash)
-          params, schema = args.first.to_a.flatten
+          updates, hash = args.first.to_a.flatten
         else
-          params, schema, *ignored = args
+          updates, hash, *ignored = args
         end
 
-        params = Hashish.data(schema.name, params)
-        result = Hashish.data(schema.name, schema)
+        updates = Hashish.data(hash.name, updates)
+        result = Hashish.data(hash.name, hash)
 
-        Hashish.depth_first_each(params) do |keys, val|
+        Hashish.depth_first_each(updates) do |keys, val|
           #currently = result.get(keys)
           result.set(keys => val) #if(currently.nil? or currently.empty?)
         end

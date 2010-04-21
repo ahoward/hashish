@@ -42,6 +42,8 @@ module Hashish
         sticky = true unless options.has_key?(:sticky)
       end
 
+      sticky = true if(message.respond_to?(:sticky?) and message.sticky?)
+
       if message
         if message.respond_to?(:full_messages)
           message.each do |key, msg|
@@ -131,18 +133,25 @@ module Hashish
       full_messages
     end
 
-    def each_full
+    def each_message
+      depth_first_each do |keys, message|
+        index = keys.pop
+        message = message.to_s.strip
+        next if message.empty?
+        yield(keys, message)
+      end
+    end
+
+    def each_full_message
       full_messages.each{|msg| yield msg}
     end
+
+    alias_method 'each_full', 'each_full_message'
 
     def messages
       messages =
         (self[Global]||[]).map{|message| message}.
         select{|message| not message.strip.empty?}
-    end
-
-    def each_message
-      messages.each{|msg| yield msg}
     end
 
     def to_html(*args)
