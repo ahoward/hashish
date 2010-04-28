@@ -28,6 +28,10 @@ if defined?(ActiveRecord)
           @to_hashish
         end
         alias_method 'to_h', 'to_hashish'
+
+        def to_hashish=(*args)
+          to_hashish(*args)
+        end
       end
 
       module InstanceMethods
