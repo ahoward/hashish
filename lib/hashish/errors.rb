@@ -40,6 +40,7 @@ module Hashish
       key = 'Status'
       delete(key)
       add(key, msg) unless status.ok?
+      status
     end
 
     def status=(*args)

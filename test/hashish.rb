@@ -109,6 +109,17 @@ Testing Hashish do
     assert{ Hashish.data(:key => {:a => nil}).blank? }
   end
 
+# status
+#
+  testing 'that setting status alters errors automatically' do
+    d = Hashish.data
+    assert{ d.status :unauthorized }
+    assert{ not d.errors.empty? }
+    assert{ d.errors.to_html.index(d.status) }
+    assert{ d.errors.status :ok }
+    assert{ d.errors.empty? }
+  end
+
 
 # parser
 #
@@ -218,6 +229,16 @@ Testing Hashish do
     assert{ errors[global].nil? }
   end
 
+  testing 'that setting status alters errors object automatically' do
+    errors = Hashish::Errors.new
+    status = nil
+    assert{ status = errors.status :unauthorized }
+    assert{ not errors.empty? }
+    assert{ errors.to_html.index(status) }
+    assert{ status = errors.status :ok }
+    assert{ errors.empty? }
+  end
+
 # validations
 #
   testing 'that simple validations work' do
@@ -243,5 +264,7 @@ Testing Hashish do
     data.errors.add(:name, 'ara')
     assert{ not data.valid? }
   end
+
+
 
 end
