@@ -34,7 +34,7 @@ module Hashish
     alias_method 'count', 'size'
     alias_method 'length', 'size'
 
-    Cleared = '___CLEARED___'.freeze
+    Cleared = '___CLEARED___'.freeze unless defined?(Cleared)
 
     def run
       previous_errors = []

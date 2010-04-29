@@ -22,15 +22,34 @@ module Hashish
       end
     end
 
+    def Errors.global_key
+      [Global]
+    end
+
     attr 'data'
 
     def initialize(data = Hashish.data)
       @data = data
     end
 
+    def status(*args)
+      options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      sticky = options.has_key?(:sticky) ? options[:sticky] : true
+      status = Status.for(*args)
+      msg = Message.new(status, :sticky => sticky)
+      key = 'Status'
+      delete(key)
+      add(key, msg) unless status.ok?
+    end
+
+    def status=(*args)
+      status(*args)
+    end
+
     def add(*args)
       options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
       sticky = options[:sticky]
+      clear = options[:clear]
 
       args.flatten!
       message = args.pop
@@ -54,14 +73,20 @@ module Hashish
         end
       end
 
+      result = []
+
       errors.each do |keys, message|
         list = get(keys)
         unless get(keys)
           set(keys => [])
           list = get(keys)
         end
+        list.clear if clear
         list.push(message)
+        result = list
       end
+      
+      result
     end
     alias_method 'add_to_base', 'add'
 
@@ -176,47 +201,10 @@ module Hashish
       klass = [names, 'hashish errors'].flatten.compact.join(' ')
 
       html =
-        table_(:class => klass){
-          caption_(:style => 'white-space:nowrap'){ 'Sorry, there were some errors.' }
-
-          tbody_{
-            errors.each do |e|
-              e.full_messages.each do |key, value|
-                at_least_one = true
-                key = key.to_s
-                if key == Global
-                  # value = value.respond_to?(:humanize) ? value.humanize: value.capitalize
-                  tr_(:colspan => 3){
-                    td_(:class => 'all'){ value }
-                  }
-                else
-                  # key = key.respond_to?(:humanize) ? key.humanize: key.capitalize
-                  tr_{
-                    td_(:class => 'field'){ key }
-                    td_(:class => 'separator'){ Separator }
-                    td_(:class => 'message'){ value }
-                  }
-                end
-              end
-            end
-          }
-        }
-
-      at_least_one ? html : ''
-    end
-
-    def Errors.errors_to_html(*args)
-      error = args.shift
-      options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
-      errors = [error, *args].flatten.compact
-
-      at_least_one = false
-      names = errors.map{|e| e.data._name}
-      klass = [names, 'hashish errors'].flatten.compact.join(' ')
-
-      html =
         ul_(:class => klass){
+          __
           h4_(:class => 'caption'){ 'Sorry, there were some errors.' }
+          __
 
           errors.each do |e|
             e.full_messages.each do |key, value|
@@ -233,6 +221,7 @@ module Hashish
                   span_(:class => 'message'){ value }
                 }
               end
+              __
             end
           end
         }

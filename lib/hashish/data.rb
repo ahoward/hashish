@@ -6,7 +6,6 @@ module Hashish
     attr_accessor :errors
     attr_accessor :validations
     attr_reader :form
-    attr_writer :status
 
     def initialize(*args, &block)
       data = self
@@ -29,8 +28,17 @@ module Hashish
       super(options)
     end
 
-    def status
-      Status.for(@status)
+    def status(*args)
+      unless args.empty?
+        options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+        @status = Status.for(*args)
+        @errors.status(@status, options)
+      end
+      @status
+    end
+
+    def status=(*args)
+      status(*args)
     end
 
     def form(*args, &block)
