@@ -99,7 +99,7 @@ module Hashish
     end
     alias_method 'add_to_base!', 'add!'
 
-    alias_method 'clear!', 'clear'
+    alias_method 'clear!', 'clear' unless instance_methods.include?('clear!')
 
     def clear
       keep = []

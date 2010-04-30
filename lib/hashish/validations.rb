@@ -41,12 +41,9 @@ module Hashish
       new_errors = []
 
       errors.each_message do |keys, message|
-#p :keys => keys
-#p :message => message
         previous_errors.push([keys, message])
       end
 
-#p :previous_errors => previous_errors
       errors.clear
 
       depth_first_each do |keys, callback|
@@ -63,8 +60,6 @@ module Hashish
         end
       end
 
-#p :new_errors => new_errors
-
       previous_errors.each do |keys, message|
         errors.add(keys, message) unless new_errors.assoc(keys)
       end
@@ -74,8 +69,6 @@ module Hashish
         message = value
         errors.add(keys, message)
       end
-
-#p :errors => errors
 
       return self
     end

@@ -11,7 +11,7 @@ module Hashish
   def depth_first_each(enumerable, path = [], accum = [], &block)
     Hashish.each_pair(enumerable) do |key, val|
       path.push(key)
-      if val.is_a?(Hash) or val.is_a?(Array) and not val.empty?
+      if((val.is_a?(Hash) or val.is_a?(Array)) and not val.empty?)
         Hashish.depth_first_each(val, path, accum)
       else
         accum << [path.dup, val]
