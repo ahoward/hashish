@@ -119,54 +119,90 @@ module Hashish
       @catching
     end
 
+    def params(*args)
+      @params ||= Hashish.hash
+      @params.update(*args) unless args.empty?
+      @params
+    end
+
+    def schema(*args)
+      @schema ||= Hashish.hash
+      @schema.update(*args) unless args.empty?
+      @schema
+    end
+
+    def result
+      @result ||= (schema + params)
+    end
+
+    alias_method 'h', 'result'
+
+  # endpoint support
+  #
+    module Endpoints
+      def endpoint(name, &block)
+        name = name.to_s
+        endpoint = name + '_endpoint'
+
+        define_method(name) do |*args|
+          @params = Hashish.hash(args.last.is_a?(Hash) ? args.pop : {})
+          args.push(@params)
+          caught = catching{ send(endpoint, *args) }
+          return(Data === caught ? caught : result)
+        end
+
+        define_method(endpoint, &block)
+        public(name)
+      ensure
+        (endpoints << name).uniq!
+      end
+
+      alias_method('Endpoint', 'endpoint')
+
+      def endpoints
+        @endpoints ||= []
+      end
+    end
+
   # namespace support
   #
     attr_accessor :namespace
 
     class Namespace < Module
+      attr_accessor :parent
+      attr_accessor :name
+
+      def Namespace.new(parent, name, &block)
+        namespace = super(&block)
+        namespace.parent = parent
+        namespace.name = name
+        namespace
+      end
+
       def method_added(method)
         private(method)
-      end
-
-      def endpoint(name, &block)
-        name = name.to_s
-        impl = name + '_impl'
-        define_method(name) do |*args|
-          options = args.last.is_a?(Hash) ? args.pop : {}
-          args.push(Hashish.hash(options))
-          catching{ send(impl, *args) }
-        end
-        define_method(impl, &block)
-        public(name)
-      end
-      alias_method('Endpoint', 'endpoint')
-
-      def name
-        @name
       end
 
       def inspect
         "Namespace(#{ name })"
       end
-
-      def Namespace.new(name, &block)
-        namespace = super(&block)
-      ensure
-        namespace.instance_eval{ @name = name }
-      end
-   end
+      
+      include Endpoints
+    end
 
     class << Api
-      def Namespace(name, &block)
+      def namespace(name, &block)
         name = name.to_s.downcase.strip
 
         namespace = namespaces[name]
+        parent = self
 
         if block
           if namespace
             namespace.module_eval(&block)
           else
-            namespace = namespaces[name] = Namespace.new(name, &block)
+            namespace = Namespace.new(parent, name, &block)
+            namespaces[name] = namespace
 
             module_eval <<-__
               def #{ name }(&block)
@@ -186,21 +222,13 @@ module Hashish
 
         namespace
       end
-      alias_method 'namespace', 'Namespace'
+      alias_method 'Namespace', 'namespace'
 
       def namespaces
         @namespaces ||= Hash.new
       end
 
-      def endpoint(name, &block)
-        define_method(name, &block)
-      #ensure
-        #(endpoints << name).uniq!
-      end
-
-      def endpoints
-        @endpoints ||= []
-      end
+      include Endpoints
     end
   end
 

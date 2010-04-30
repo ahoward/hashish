@@ -118,6 +118,7 @@ module Hashish
       Data.apply(other => self)
     end
     alias_method 'build', 'apply'
+    alias_method '+', 'apply'
 
     def to_yaml(*args, &block)
       Hash.new.update(self).to_yaml(*args, &block)
