@@ -137,6 +137,9 @@ module Hashish
 
     alias_method 'h', 'result'
 
+# TODO - namespcaes are not recursive yet
+# TODO - endpoints are not listed on the top level appropriately
+#
   # endpoint support
   #
     module Endpoints

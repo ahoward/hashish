@@ -113,6 +113,10 @@ module Hashish
     end
     alias_method 'error?', 'bad?'
 
+    def ==(other)
+      self == Status.for(other)
+    end
+
     def Status.for(*args)
       if args.size >= 2
         code = args.shift

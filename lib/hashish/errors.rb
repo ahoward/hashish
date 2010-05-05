@@ -1,6 +1,7 @@
 module Hashish
   class Errors < HashWithIndifferentAccess
     include HashMethods
+
     include Tagz.globally
     extend Tagz.globally
 
@@ -20,6 +21,14 @@ module Hashish
         @sticky ||= nil
         !!@sticky
       end
+
+      def to_yaml(*args, &block)
+        to_str.to_yaml(*args, &block)
+      end
+    end
+
+    def to_yaml(*args, &block)
+      Hash.new.update(self).to_yaml(*args, &block)
     end
 
     def Errors.global_key
@@ -66,8 +75,8 @@ module Hashish
 
       if message
         if message.respond_to?(:full_messages)
-          message.each do |key, msg|
-            errors[key] = Message.new(msg, :sticky => sticky)
+          message.depth_first_each do |keys, msg|
+            errors[keys] = Message.new(msg, :sticky => sticky)
           end
         else
           errors[keys] = Message.new(message, :sticky => sticky)
@@ -121,8 +130,8 @@ module Hashish
 
     alias_method 'on', 'get'
 
-    def each(&block)
-      Hashish.depth_first_each(enumerable=self, &block)
+    def depth_first_each(*args, &block)
+      Hashish.depth_first_each(enumerable=self, *args, &block)
     end
 
     def size
