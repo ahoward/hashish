@@ -19,3 +19,6 @@ ISSUES ADRESSED
   . lack of domain (current_user)
   . easily optimize queries later
   . magic
+
+SUPPORT
+  . http://www.paperplanes.de/2010/5/7/activerecord_callbacks_ruined_my_life.html

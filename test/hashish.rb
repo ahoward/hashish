@@ -111,6 +111,17 @@ Testing Hashish do
 
 # status
 #
+  testing 'Status.for' do
+    assert{ Hashish::Status.for(:unauthorized).code == 401 }
+    assert{ Hashish::Status.for(:UNAUTHORIZED).code == 401 }
+    assert{ Hashish::Status.for('unauthorized').code == 401 }
+    assert{ Hashish::Status.for('UNAUTHORIZED').code == 401 }
+    assert{ Hashish::Status.for('Unauthorized').code == 401 }
+    assert{ Hashish::Status.for(:Unauthorized).code == 401 }
+    assert{ Hashish::Status.for(:No_Content).code == 204 }
+    assert{ Hashish::Status.for(:no_content).code == 204 }
+  end
+
   testing 'that setting status alters errors automatically' do
     d = Hashish.data
     assert{ d.status :unauthorized }
@@ -118,6 +129,13 @@ Testing Hashish do
     assert{ d.errors.to_html.index(d.status) }
     assert{ d.errors.status :ok }
     assert{ d.errors.empty? }
+  end
+
+  testing 'status equality operator' do
+    s = Hashish::Status.for(401)
+    assert{ s == :unauthorized }
+    assert{ s == 401 }
+    assert{ s != Array.new }
   end
 
 
@@ -151,23 +169,31 @@ Testing Hashish do
     assert{ parsed =~ expected }
   end
 
-# schema
+# apply
 #
-  testing 'schema with defaults' do
-    params = {:n => 42.0}
-    schema =
-     H(:data,
-       {
-       :a => {
-         :b => 42
-       },
-       :n => 0
-       }
-     )
+  testing 'apply' do
+    h = H.data(
+      :a => 'default',
+      :b => { :x => 'default', :y => 'default' },
+      :c => %w[ default default default ]
+    )
 
-      result = schema.apply(params)
-      assert{ result[:n] == 42.0 }
-      assert{ result.get(:a,:b) == 42 }
+    params = H.data
+    params.set(:a, 'updated')
+    params.set(:b, :x, 'updated')
+    params.set(:c, 2, 'updated')
+
+    result = h.apply(params)
+
+    assert{ result[:a] == 'updated' }
+    assert{ result.get(:b,:x) == 'updated' }
+    assert{ result.get(:b,:y) == 'default' }
+    assert{ result.get(:c,0) == 'default' }
+    assert{ result.get(:c,1) == 'default' }
+    assert{ result.get(:c,2) == 'updated' }
+  end
+
+  testing 'that apply uses a blacklist' do
   end
  
 

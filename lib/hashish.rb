@@ -21,7 +21,7 @@
 # hashish libs
 #
   module Hashish
-    Version = '0.4.3' unless defined?(Version)
+    Version = '1.0.0' unless defined?(Version)
 
     def version
       Hashish::Version
@@ -55,10 +55,11 @@
     load 'errors.rb'
     load 'validations.rb'
     load 'slug.rb'
-    load 'parameter_parser.rb'
+    load 'params.rb'
     load 'api.rb'
-    load 'mongo_mapper.rb'
+    load 'rails.rb'
     load 'active_record.rb'
+    load 'mongo_mapper.rb'
     load 'db.rb'
   end
 

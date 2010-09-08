@@ -107,6 +107,19 @@ module Hashish
     alias_method 'post?', 'write?'
 
 
+    def route(*args, &block)
+      options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      mode = options[:mode] || Mode.read
+
+      route = [args].flatten.compact.join('/').split('/')
+      namespaces, endpoint = route, route.pop
+
+      target = send(mode)
+      namespaces.each{|namespace| target = target.send(namespace)}
+
+      target.send(endpoint, params)
+    end
+
     def catching(label = :result, &block)
       catching = @catching
       @catching = true
@@ -169,11 +182,51 @@ module Hashish
 
   # namespace support
   #
-    attr_accessor :namespace
+    module Namespaces
+      def namespace(name, &block)
+        name = name.to_s.downcase.strip
+
+        namespace = namespaces[name]
+        parent = self
+
+        if block
+          if namespace
+            namespace.module_eval(&block)
+          else
+            namespace = Namespace.new(parent, name, &block)
+            namespaces[name] = namespace
+
+            module_eval(<<-__, __FILE__, __LINE__ + 1)
+              def #{ name }(&block)
+                namespace = self.class.namespaces[#{ name.inspect }]
+                namespaced = self.dup
+
+                namespaced.extend(namespace)
+
+                if block
+                  namespaced.instance_eval(&block)
+                else
+                  namespaced
+                end
+              end
+              public #{ name.to_s.inspect }
+            __
+          end
+        end
+
+        namespace
+      end
+      alias_method 'Namespace', 'namespace'
+
+      def namespaces
+        @namespaces ||= Hash.new
+      end
+    end
 
     class Namespace < Module
       attr_accessor :parent
       attr_accessor :name
+      attr_accessor :namespaced
 
       def Namespace.new(parent, name, &block)
         namespace = super(&block)
@@ -189,11 +242,7 @@ module Hashish
       def inspect
         "Namespace(#{ name })"
       end
-      
-      include Endpoints
-    end
 
-    class << Api
       def namespace(name, &block)
         name = name.to_s.downcase.strip
 
@@ -207,10 +256,11 @@ module Hashish
             namespace = Namespace.new(parent, name, &block)
             namespaces[name] = namespace
 
-            module_eval <<-__
+            module_eval(<<-__, __FILE__, __LINE__ + 1)
               def #{ name }(&block)
-                namespaced = self.dup
+              return self
                 namespace = self.class.namespaces[#{ name.inspect }]
+                namespaced = self.dup
                 namespaced.extend(namespace)
                 namespaced.namespace = namespace
                 if block
@@ -230,7 +280,12 @@ module Hashish
       def namespaces
         @namespaces ||= Hash.new
       end
+      
+      include Endpoints
+    end
 
+    class << Api
+      include Namespaces
       include Endpoints
     end
   end

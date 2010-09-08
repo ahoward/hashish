@@ -146,8 +146,17 @@ module Hashish
       end
     end
 
+    Apply = Struct.new(:blacklist, :whitelist).new([], [])
 
     class << Data
+      def apply_whitelist
+        Apply.whitelist
+      end
+
+      def apply_blacklist
+        Apply.blacklist
+      end
+
       def apply(*args)
         if args.size == 1 and args.first.is_a?(Hash)
           updates, hash = args.first.to_a.flatten
@@ -158,9 +167,20 @@ module Hashish
         updates = Hashish.data(hash.name, updates)
         result = Hashish.data(hash.name, hash)
 
-        Hashish.depth_first_each(updates) do |keys, val|
-          #currently = result.get(keys)
-          result.set(keys => val) #if(currently.nil? or currently.empty?)
+        blacklist = Apply.blacklist
+        whitelist = Apply.whitelist
+
+        updates.depth_first_each do |keys, val|
+          unless whitelist.empty?
+          end
+
+          unless blacklist.empty?
+          end
+
+          next if keys.compact.empty?
+          next if val.nil?
+
+          result.set(keys => val)
         end
 
         result

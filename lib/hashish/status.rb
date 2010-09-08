@@ -114,7 +114,12 @@ module Hashish
     alias_method 'error?', 'bad?'
 
     def ==(other)
-      self == Status.for(other)
+      begin
+        other = Status.for(other)
+        self.code == other.code and self.message == other.message
+      rescue
+        false
+      end
     end
 
     def Status.for(*args)
@@ -131,13 +136,14 @@ module Hashish
             code = arg
             message = Code2Message[code]
             new(code, message)
-          when Symbol
-            code = Symbol2Code[arg]
+          when Symbol, String
+            sym = Hashish.underscore(arg).to_sym
+            code = Symbol2Code[sym]
             if code
               message = Code2Message[code]
             else
               code = 500
-              message = "Unknown Status #{ arg.inspect }"
+              message = "Unknown Status #{ arg }"
             end
             new(code, message)
           else
