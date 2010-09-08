@@ -106,7 +106,6 @@ module Hashish
     alias_method 'post', 'write'
     alias_method 'post?', 'write?'
 
-
     def route(*args, &block)
       options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
       mode = options[:mode] || Mode.read
@@ -241,44 +240,6 @@ module Hashish
 
       def inspect
         "Namespace(#{ name })"
-      end
-
-      def namespace(name, &block)
-        name = name.to_s.downcase.strip
-
-        namespace = namespaces[name]
-        parent = self
-
-        if block
-          if namespace
-            namespace.module_eval(&block)
-          else
-            namespace = Namespace.new(parent, name, &block)
-            namespaces[name] = namespace
-
-            module_eval(<<-__, __FILE__, __LINE__ + 1)
-              def #{ name }(&block)
-              return self
-                namespace = self.class.namespaces[#{ name.inspect }]
-                namespaced = self.dup
-                namespaced.extend(namespace)
-                namespaced.namespace = namespace
-                if block
-                  namespaced.instance_eval(&block)
-                else
-                  namespaced
-                end
-              end
-            __
-          end
-        end
-
-        namespace
-      end
-      alias_method 'Namespace', 'namespace'
-
-      def namespaces
-        @namespaces ||= Hash.new
       end
       
       include Endpoints
