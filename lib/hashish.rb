@@ -15,8 +15,10 @@
   end
 
   require 'tagz'
-  #require 'orderedhash'
+  require 'arrayfields'
+  require 'options'
   require 'json'
+
 
 # hashish libs
 #
@@ -57,6 +59,9 @@
     load 'validations.rb'
     load 'slug.rb'
     load 'params.rb'
+    load 'api/mode.rb'
+    load 'api/endpoint.rb'
+    load 'api/dsl.rb'
     load 'api.rb'
     load 'rails.rb'
     load 'active_record.rb'
