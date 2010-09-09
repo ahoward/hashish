@@ -202,6 +202,7 @@ module Hashish
     data
   end
 
+  alias_method 'data_for', 'data'
   alias_method 'hash', 'data'
   alias_method 'schema', 'data'
 end

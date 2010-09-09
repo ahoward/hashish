@@ -16,6 +16,7 @@
 
   require 'tagz'
   require 'arrayfields'
+  require 'orderedhash'
   require 'options'
   require 'json'
 

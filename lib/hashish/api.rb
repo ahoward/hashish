@@ -47,6 +47,42 @@ module Hashish
         @dsl.evaluate(&block)
       end
 
+      def endpoint(*args, &block)
+        args.flatten!
+        args.compact!
+        options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+
+        name = absolute_path_for(*args)
+
+        module_eval{ 
+          define_method(name + '/endpoint', &block)
+
+          define_method(name) do |*args|
+            args.flatten!
+            params = args.shift || {}
+            result = args.shift || {}
+            raise(ArgumentError, "#{ params.class.name }(#{ params.inspect })") unless params.is_a?(Hash)
+            raise(ArgumentError, "#{ result.class.name }(#{ result.inspect })") unless result.is_a?(Hash)
+            @params = Hashish.data_for(params)
+            @result = Hashish.data_for(result)
+            send(name + '/endpoint', @params, @result)
+            @result
+          end
+
+          public name
+        }
+
+        endpoint = instance_method(name)
+        endpoint.extend(Endpoint)
+        endpoint.name = name
+        endpoint.description = String(options[:description] || name)
+        endpoint.signature = Hashish.hash_for(options[:signature] || {})
+        endpoints[endpoint.name] = endpoint
+        endpoint
+      end
+
+      alias_method('Endpoint', 'endpoint')
+
       def endpoints
         @endpoints ||= Array.fields
       end
@@ -59,6 +95,18 @@ module Hashish
       end
 
       alias_method '[]', 'get'
+
+      def description
+        description = []
+        endpoints.each do |endpoint|
+          oh = OrderedHash.new
+          oh['name'] = endpoint.name
+          oh['description'] = endpoint.description
+          oh['signature'] = {}.update(endpoint.signature) # HACK
+          description.push(oh)
+        end
+        description
+      end
     end
 
     Api.modes('read', 'write')
@@ -172,6 +220,22 @@ module Hashish
 
     def call(path, *args)
       get(path).call(*args)
+    end
+
+    def params
+      @params ||= Hashish.hash
+    end
+
+    def result
+      @result ||= Hashish.hash
+    end
+
+    def description
+      self.class.description
+    end
+
+    def respond_to?(*args)
+      super(*args) || super(absolute_path_for(*args))
     end
   end
 

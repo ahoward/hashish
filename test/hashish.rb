@@ -301,14 +301,13 @@ Testing Hashish do
     api = nil
     assert{ api = api_class.new }
     assert{ api.respond_to?(:foo) }
-    assert{ api.foo() }
+    assert{ api.call(:foo) }
   end
-
   testing 'that endpoints have params/schema/result' do
     api = assert{ Class.new(Hashish.api) }
     a, b, c = nil
     assert{ api.class_eval{ endpoint(:foo){ a = params; b = schema; c = result;} } }
-    api = assert{ api.new.foo }
+    api = assert{ api.new.call(:foo) }
     assert{ a.is_a?(Hashish::Data) }
     assert{ b.is_a?(Hashish::Data) }
     assert{ c.is_a?(Hashish::Data) }
@@ -318,46 +317,9 @@ Testing Hashish do
     api = assert{ Class.new(Hashish.api) }
     a, b, c = nil
     assert{ api.class_eval{ endpoint(:foo){ a = params; b = schema; c = result;} } }
-    assert{ api.new.foo }
+    assert{ api.new.call(:foo) }
     assert{ a.is_a?(Hashish::Data) }
     assert{ b.is_a?(Hashish::Data) }
     assert{ c.is_a?(Hashish::Data) }
   end
-
-  testing 'that endpoints have a result which equals schema + params' do
-    api = assert{ Class.new(Hashish.api) }
-    r = nil
-    assert{ 
-      api.class_eval{ 
-        endpoint(:foo){
-          schema :a => nil
-          r = result
-        }
-      }
-    }
-    assert{ api.new.foo(:a => 4, :b => 2) }
-    assert{ r.a * 10 + r.b == 42 }
-  end
-
-  testing 'that endpoints return the magic result when no hashish object is returned' do
-    api = assert{ Class.new(Hashish.api) }
-    d = Hashish.data(:manually => :returned)
-    assert{ 
-      api.class_eval{ 
-        endpoint(:foo){ return d } 
-        endpoint(:bar){}
-        endpoint(:baz){ return 42 }
-      }
-    }
-    foo = assert{ api.new.foo }
-    bar = assert{ api.new.bar }
-    baz = assert{ api.new.baz }
-    assert{ foo.is_a?(Hashish::Data) }
-    assert{ bar.is_a?(Hashish::Data) }
-    assert{ baz.is_a?(Hashish::Data) }
-    assert{ foo == d }
-    assert{ bar != d }
-    assert{ baz != 42 }
-  end
-
 end
