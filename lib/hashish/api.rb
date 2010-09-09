@@ -149,27 +149,66 @@ module Hashish
 
     alias_method 'h', 'result'
 
-# TODO - namespcaes are not recursive yet
-# TODO - endpoints are not listed on the top level appropriately
-#
-  # endpoint support
-  #
-    module Endpoints
-      def endpoint(name, &block)
-        name = name.to_s
-        endpoint = name + '_endpoint'
+    class Namespace < BlankSlate
+      def initialize(api, scope = [])
+        @api = api
+        @scope = scope
+      end
 
-        define_method(name) do |*args|
+      def inspect
+        "#{ self.class.name }(#{ @scope.join('/').inspect })"
+      end
+
+      def class
+        Namespace
+      end
+
+      def method_missing(method, *args, &block)
+        method = method.to_s
+        message = [@scope, method].join('/')
+        if @api.respond_to?(message)
+          @api.send(message, *args, &block)
+        else
+          Namespace.new(@api, @scope + [method])
+        end
+      end
+    end
+
+    class << Api
+      def path_for(*names)
+        path = [*names].flatten.compact.join('/')
+        path.squeeze!('/')
+        path.sub!(%r|^/|, '')
+        path.sub!(%r|/$|, '')
+        path.split('/')
+      end
+
+      def endpoint(*names, &block)
+        path = path_for(scope, *names) 
+
+        if path.size > 1
+          namespace = path.first
+          unless instance_methods.detect{|m| m.to_s == namespace}
+            define_method(namespace){ Namespace.new(api=self, [namespace]) }
+          end
+        end
+
+        scoped = path.join('/')
+
+        endpoint = [scoped, 'endpoint'].join('/')
+        define_method(endpoint, &block)
+
+        define_method(scoped) do |*args|
           @params = Hashish.hash(args.last.is_a?(Hash) ? args.pop : {})
           args.push(@params)
           caught = catching{ send(endpoint, *args) }
-          return(Data === caught ? caught : result)
+          #return(Data === caught ? caught : result)
+          caught
         end
 
-        define_method(endpoint, &block)
-        public(name)
+        public(scoped)
       ensure
-        (endpoints << name).uniq!
+        (endpoints << scoped).uniq!
       end
 
       alias_method('Endpoint', 'endpoint')
@@ -177,77 +216,34 @@ module Hashish
       def endpoints
         @endpoints ||= []
       end
-    end
 
-  # namespace support
-  #
-    module Namespaces
-      def namespace(name, &block)
-        name = name.to_s.downcase.strip
-
-        namespace = namespaces[name]
-        parent = self
-
-        if block
-          if namespace
-            namespace.module_eval(&block)
-          else
-            namespace = Namespace.new(parent, name, &block)
-            namespaces[name] = namespace
-
-            module_eval(<<-__, __FILE__, __LINE__ + 1)
-              def #{ name }(&block)
-                namespace = self.class.namespaces[#{ name.inspect }]
-                namespaced = self.dup
-
-                namespaced.extend(namespace)
-
-                if block
-                  namespaced.instance_eval(&block)
-                else
-                  namespaced
-                end
-              end
-              public #{ name.to_s.inspect }
-            __
-          end
-        end
-
-        namespace
+      def scope
+        @scope ||= []
       end
-      alias_method 'Namespace', 'namespace'
 
       def namespaces
         @namespaces ||= Hash.new
       end
-    end
 
-    class Namespace < Module
-      attr_accessor :parent
-      attr_accessor :name
-      attr_accessor :namespaced
+      def namespace(name, &block)
+        name = name.to_s
 
-      def Namespace.new(parent, name, &block)
-        namespace = super(&block)
-        namespace.parent = parent
-        namespace.name = name
-        namespace
+=begin
+        top = scope.empty?
+        if top
+          unless respond_to?(name)
+            define_method(name){ Namespace.new(api=self, [name]) }
+          end
+        end
+=end
+
+        begin
+          scope.push(name)
+          block.call(scope)
+        ensure
+          scope.pop
+        end
       end
-
-      def method_added(method)
-        private(method)
-      end
-
-      def inspect
-        "Namespace(#{ name })"
-      end
-      
-      include Endpoints
-    end
-
-    class << Api
-      include Namespaces
-      include Endpoints
     end
   end
 

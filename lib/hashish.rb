@@ -45,6 +45,7 @@
   end
 
   Hashish.libdir do
+    load 'blankslate.rb'
     load 'exceptions.rb'
     load 'support.rb'
     load 'status.rb'
