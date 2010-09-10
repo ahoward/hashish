@@ -81,8 +81,12 @@ task :gemspec do
 
             spec.has_rdoc = #{ has_rdoc.inspect }
             spec.test_files = #{ test_files.inspect }
-            #spec.add_dependency 'lib', '>= version'
-            #spec.add_dependency 'fattr'
+
+            ### spec.add_dependency 'lib', '>= version'
+            spec.add_dependency 'tagz'
+            spec.add_dependency 'arrayfields'
+            spec.add_dependency 'orderedhash'
+            spec.add_dependency 'options'
 
             spec.extensions.push(*#{ extensions.inspect })
 

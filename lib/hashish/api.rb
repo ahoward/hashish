@@ -55,6 +55,7 @@ module Hashish
         name = absolute_path_for(*args)
 
         module_eval{ 
+          raise(ArgumentError, 'endpoints must accept two arguments') unless block.arity == 2
           define_method(name + '/endpoint', &block)
 
           define_method(name) do |*args|
@@ -63,21 +64,35 @@ module Hashish
             result = args.shift || {}
             raise(ArgumentError, "#{ params.class.name }(#{ params.inspect })") unless params.is_a?(Hash)
             raise(ArgumentError, "#{ result.class.name }(#{ result.inspect })") unless result.is_a?(Hash)
-            @params = Hashish.data_for(params)
-            @result = Hashish.data_for(result)
-            send(name + '/endpoint', @params, @result)
-            @result
+            params = Hashish.data_for(params)
+            result = Hashish.data_for(result)
+            catching{ send(name + '/endpoint', params, result) }
+            result
           end
 
           public name
         }
 
         endpoint = instance_method(name)
-        endpoint.extend(Endpoint)
-        endpoint.name = name
-        endpoint.description = String(options[:description] || name)
-        endpoint.signature = Hashish.hash_for(options[:signature] || {})
+
+        annotate(endpoint, options.merge(:name => name))
+
         endpoints[endpoint.name] = endpoint
+        endpoint
+      end
+
+      def annotate(endpoint, attributes = {})
+        attributes = Hashish.hash_for(attributes)
+        endpoint.extend(Endpoint) unless endpoint.is_a?(Endpoint)
+
+        name = attributes[:name]
+        description = attributes[:description]
+        signature = attributes[:signature]
+
+        endpoint.name = name
+        endpoint.description = String(description || name)
+        endpoint.signature = Hashish.hash_for(signature || {})
+
         endpoint
       end
 
@@ -96,6 +111,15 @@ module Hashish
 
       alias_method '[]', 'get'
 
+      def name(*name)
+        self.name = name.first unless name.empty?
+        @name ||= 'api'
+      end
+
+      def name=(name)
+        @name = name.to_s
+      end
+
       def description
         description = []
         endpoints.each do |endpoint|
@@ -105,7 +129,7 @@ module Hashish
           oh['signature'] = {}.update(endpoint.signature) # HACK
           description.push(oh)
         end
-        description
+        Hashish.data_for(name => description)
       end
     end
 
@@ -177,24 +201,6 @@ module Hashish
       @catching
     end
 
-    def params(*args)
-      @params ||= Hashish.hash
-      @params.update(*args) unless args.empty?
-      @params
-    end
-
-    def schema(*args)
-      @schema ||= Hashish.hash
-      @schema.update(*args) unless args.empty?
-      @schema
-    end
-
-    def result
-      @result ||= (schema + params)
-    end
-
-    alias_method 'h', 'result'
-
     def absolute_path_for(*paths)
       Api.absolute_path_for(*paths)
     end
@@ -220,14 +226,6 @@ module Hashish
 
     def call(path, *args)
       get(path).call(*args)
-    end
-
-    def params
-      @params ||= Hashish.hash
-    end
-
-    def result
-      @result ||= Hashish.hash
     end
 
     def description

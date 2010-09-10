@@ -196,7 +196,6 @@ module Hashish
   end
 
   def data(*args, &block)
-    #args.push(:data) if args.empty? and block.nil?
     data = Hashish::Data.new(*args)
     block.call(data) if block
     data

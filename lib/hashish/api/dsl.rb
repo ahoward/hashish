@@ -17,6 +17,10 @@ module Hashish
       end
 
       alias_method('Endpoint', 'endpoint')
+
+      def name(name)
+        api.name = name.to_s
+      end
     end
   end
 end
