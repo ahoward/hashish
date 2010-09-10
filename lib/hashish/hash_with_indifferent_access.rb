@@ -150,7 +150,7 @@ module Hashish
 =end
 
           else
-            value
+            value.respond_to?(:to_hashish) ? value.to_hashish : value
         end
       end
   end
