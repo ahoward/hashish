@@ -303,23 +303,23 @@ Testing Hashish do
     assert{ api.respond_to?(:foo) }
     assert{ api.call(:foo) }
   end
-  testing 'that endpoints have params/schema/result' do
+  testing 'that endpoints are called according to arity' do
     api = assert{ Class.new(Hashish.api) }
-    a, b, c = nil
-    assert{ api.class_eval{ endpoint(:foo){ a = params; b = schema; c = result;} } }
-    api = assert{ api.new.call(:foo) }
-    assert{ a.is_a?(Hashish::Data) }
-    assert{ b.is_a?(Hashish::Data) }
-    assert{ c.is_a?(Hashish::Data) }
+    assert{ api.class_eval{ endpoint(:zero){|| result.update :args => [] } } }
+    assert{ api.class_eval{ endpoint(:one){|a| result.update :args => [a]} } }
+    assert{ api.class_eval{ endpoint(:two){|a,b| result.update :args => [a,b]} } }
+
+    assert{ api.new.call(:zero).args.size == 0 }
+    assert{ api.new.call(:one).args.size == 1 }
+    assert{ api.new.call(:two).args.size == 2 }
   end
 
-  testing 'that endpoints have magic params/schema/result' do
+  testing 'that endpoints have magic params and result objects' do
     api = assert{ Class.new(Hashish.api) }
-    a, b, c = nil
-    assert{ api.class_eval{ endpoint(:foo){ a = params; b = schema; c = result;} } }
+    assert{ api.class_eval{ endpoint(:foo){ params; result; } } }
+    assert{ api.class_eval{ endpoint(:bar){ foo = api.call(:foo); params!=foo.params; result!=foo.result; } } }
     assert{ api.new.call(:foo) }
-    assert{ a.is_a?(Hashish::Data) }
-    assert{ b.is_a?(Hashish::Data) }
-    assert{ c.is_a?(Hashish::Data) }
+    assert{ api.new.call(:bar) }
   end
+
 end

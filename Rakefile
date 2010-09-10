@@ -99,9 +99,9 @@ task :gemspec do
       }
     end
 
-  unless test(?e, "#{ lib }.gemspec")
+  #unless test(?e, "#{ lib }.gemspec")
     open("#{ lib }.gemspec", "w"){|fd| fd.puts template}
-  end
+  #end
   This.gemspec = "#{ lib }.gemspec"
 end
 

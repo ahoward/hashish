@@ -55,8 +55,8 @@ module Hashish
         name = absolute_path_for(*args)
 
         module_eval{ 
-          raise(ArgumentError, 'endpoints must accept two arguments') unless block.arity == 2
           define_method(name + '/endpoint', &block)
+          arity = block.arity
 
           define_method(name) do |*args|
             args.flatten!
@@ -66,7 +66,28 @@ module Hashish
             raise(ArgumentError, "#{ result.class.name }(#{ result.inspect })") unless result.is_a?(Hash)
             params = Hashish.data_for(params)
             result = Hashish.data_for(result)
-            catching{ send(name + '/endpoint', params, result) }
+
+            args =
+              case arity
+                when 0
+                  []
+                when 1
+                  [params]
+                when 2
+                  [params, result]
+                else
+                  [params, result]
+              end
+
+            begin
+              @stack.params.push(params)
+              @stack.result.push(result)
+              catching{ send(name + '/endpoint', *args) }
+            rescue
+              @stack.params.pop
+              @stack.result.pop
+            end
+
             result
           end
 
@@ -135,13 +156,24 @@ module Hashish
 
     Api.modes('read', 'write')
 
+    Stack = Struct.new(:params, :result)
+
     def before_initialize(*args, &block)
       @mode = Mode.for(:read)
       @catching = false
+      @stack = Stack.new(params=[], result=[])
     end
 
     def after_initialize(*args, &block)
       :hook
+    end
+
+    def params
+      @stack.params.last
+    end
+
+    def result
+      @stack.result.last
     end
 
     def mode=(mode)

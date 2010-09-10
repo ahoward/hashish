@@ -18,7 +18,6 @@
   require 'arrayfields'
   require 'orderedhash'
   require 'options'
-  require 'json'
 
 
 # hashish libs
