@@ -63,4 +63,18 @@ module Hashish
   def build(*args)
     Data.build(*args)
   end
+
+  def to_hashish(object, *args, &block)
+    case object
+      when Array
+        object.map{|element| Hashish.to_hashish(element)}
+
+      else
+        if object.respond_to?(:to_hashish)
+          object.send(:to_hashish, *args, &block)
+        else
+          object
+        end
+    end
+  end
 end

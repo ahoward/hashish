@@ -66,6 +66,7 @@
     load 'rails.rb'
     load 'active_record.rb'
     load 'mongo_mapper.rb'
+    load 'stdext.rb'
     load 'db.rb'
   end
 
