@@ -110,6 +110,17 @@ module Hashish
 
     alias_method 'clear!', 'clear' unless instance_methods.include?('clear!')
 
+    def update(other)
+      other.each do |key, val|
+        key = key.to_s
+        if key == 'base' or key == Global
+          add!(val)
+        else
+          add(key, val)
+        end
+      end
+    end
+
     def clear
       keep = []
       depth_first_each do |keys, message|
