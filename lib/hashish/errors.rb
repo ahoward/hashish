@@ -110,12 +110,16 @@ module Hashish
 
     alias_method 'clear!', 'clear' unless instance_methods.include?('clear!')
 
-    def update(other)
+    def update(other, options = {})
+      options = Hashish.hash_for(options)
+      prefix = Array(options[:prefix]).flatten.compact
+
       other.each do |key, val|
         key = key.to_s
         if key == 'base' or key == Global
           add!(val)
         else
+          key = prefix + [key] unless prefix.empty?
           add(key, val)
         end
       end
