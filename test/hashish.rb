@@ -313,13 +313,19 @@ Testing Hashish do
     assert{ api.new.call(:one).args.size == 1 }
     assert{ api.new.call(:two).args.size == 2 }
   end
-
   testing 'that endpoints have magic params and result objects' do
     api = assert{ Class.new(Hashish.api) }
     assert{ api.class_eval{ endpoint(:foo){ params; result; } } }
-    assert{ api.class_eval{ endpoint(:bar){ foo = api.call(:foo); params!=foo.params; result!=foo.result; } } }
     assert{ api.new.call(:foo) }
-    assert{ api.new.call(:bar) }
+  end
+
+  testing 'that methods with requirements can be defined' do
+    api = assert{ Class.new(Hashish.api) }
+    assert{ api.class_eval{ endpoint('/foo/:foo/bar/:bar/:baz'){ result.update(params) } } }
+    result = assert{ api.new.call('/foo/42/bar/42.0/forty-two') }
+    assert{ result[:foo] = '42' }
+    assert{ result[:bar] = '42.0' }
+    assert{ result[:baz] = 'forty-two' }
   end
 
 end

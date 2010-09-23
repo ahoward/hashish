@@ -20,9 +20,16 @@ module Hashish
       def add_mode(mode)
         modes.push(mode = Mode.for(mode)).uniq!
         module_eval(<<-__, __FILE__, __LINE__ - 1)
-          def #{ mode }(&block)
-            mode(#{ mode.inspect }, &block)
+          def #{ mode }(*args, &block)
+            if args.empty?
+              mode(#{ mode.inspect }, &block)
+            else
+              mode(#{ mode.inspect }) do
+                call(*args, &block)
+              end
+            end
           end
+
           def #{ mode }?(&block)
             mode?(#{ mode.inspect }, &block)
           end
@@ -47,12 +54,81 @@ module Hashish
         @dsl.evaluate(&block)
       end
 
+      class Route < ::String
+        class << Route
+          def like?(route)
+            route.to_s =~ %r{/:[^/]+}
+          end
+
+          def keys_for(route)
+            route = Api.absolute_path_for(route.to_s)
+            route.scan(%r{/:[^/]+}).map{|key| key.sub(%r{^/:}, '')}
+          end
+
+          def pattern_for(route)
+            route = Api.absolute_path_for(route.to_s)
+            re = route.gsub(%r{/:[^/]+}, '/([^/]+)')
+            /#{ re }/ioux
+          end
+        end
+
+        attr_accessor :keys
+        attr_accessor :pattern
+        attr_accessor :params
+
+        def initialize(name)
+          replace(name.to_s)
+          @keys = Route.keys_for(route)
+          @pattern = Route.pattern_for(route)
+          @params = Hashish.hash
+          freeze
+        end
+
+        %w( path name route ).each do |method|
+          define_method(method){ self }
+        end
+
+        def match(name)
+          match = pattern.match(name).to_a
+          if match
+            @params.clear
+            ignored = match.shift
+            @keys.each_with_index do |key, index|
+              @params[key] = match[index]
+            end
+            route
+          end
+        end
+
+        class List < ::Array
+          def add(name)
+            push(Route.new(name))
+          end
+
+          def match(name)
+            each do |route|
+              match = route.match(name)
+              return route if match
+            end
+            return nil
+          end
+        end
+      end
+
+      def routes
+        @routes ||= Route::List.new
+      end
+
       def endpoint(*args, &block)
         args.flatten!
         args.compact!
         options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
 
         name = absolute_path_for(*args)
+
+        if Route.like?(name)
+          routes.add(name)
+        end
 
         module_eval{ 
           define_method(name + '/endpoint', &block)
@@ -83,7 +159,7 @@ module Hashish
               @stack.params.push(params)
               @stack.result.push(result)
               catching{ send(name + '/endpoint', *args) }
-            rescue
+            ensure
               @stack.params.pop
               @stack.result.pop
             end
@@ -123,14 +199,14 @@ module Hashish
         @endpoints ||= Array.fields
       end
 
-      def get(*names)
+      def endpoint_for(*names)
         name = Api.absolute_path_for(*names)
         endpoint = endpoints[name]
         raise(NameError, name) unless endpoint
         endpoint
       end
 
-      alias_method '[]', 'get'
+      alias_method '[]', 'endpoint_for'
 
       def name(*name)
         self.name = name.first unless name.empty?
@@ -190,14 +266,14 @@ module Hashish
           mode = self.mode
           self.mode = args.shift
           begin
-            instance_eval(&block)
+            return instance_eval(&block)
           ensure
             self.mode = mode
           end
         else
           self.mode = args.shift
+          return self
         end
-        self
       end
     end
 
@@ -247,18 +323,30 @@ module Hashish
       @endpoints
     end
 
-    def get(*names)
-      name = Api.absolute_path_for(*names)
-      endpoint = endpoints[name]
-      raise(NameError, name) unless endpoint
-      endpoint
+    def route_for(*args)
+      self.class.routes.match(*args)
     end
 
-    alias_method '[]', 'get'
+    def call(*args)
+      result = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      params = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
 
-    def call(path, *args)
-      get(path).call(*args)
+      path = Api.absolute_path_for(*args)
+      endpoint = endpoints[path]
+
+      if endpoint.nil?
+        route = route_for(path)
+        params.update(route.params)
+        path = route.path
+        endpoint = endpoints[path]
+      end
+
+      raise(NameError, path) unless endpoint
+
+      endpoint.call(params, result)
     end
+
+    alias_method '[]', 'call'
 
     def description
       self.class.description
