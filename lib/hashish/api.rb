@@ -328,8 +328,9 @@ module Hashish
     end
 
     def call(*args)
-      result = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
-      params = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
+      hashes = []
+      2.times{ hashes.push(Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})) }
+      params, result = hashes
 
       path = Api.absolute_path_for(*args)
       endpoint = endpoints[path]
