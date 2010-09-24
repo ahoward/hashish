@@ -132,7 +132,7 @@ module Hashish
       attr_accessor :instance
 
       def default_root()
-        defined?(Rails.root) ? File.join(Rails.root, 'db') : './db'
+        defined?(Rails.root) ? File.join(Rails.root.to_s, 'db') : './db'
       end
 
       def default_path()
