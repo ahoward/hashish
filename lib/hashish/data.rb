@@ -196,7 +196,11 @@ module Hashish
   end
 
   def data(*args, &block)
-    data = Hashish::Data.new(*args)
+    if args.size == 1 and args.first.is_a?(Data)
+      data = args.first
+    else
+      data = Hashish::Data.new(*args)
+    end
     block.call(data) if block
     data
   end
