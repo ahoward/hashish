@@ -1,6 +1,9 @@
-require File.join(File.dirname(__FILE__), 'testing')
+testdir = File.dirname(File.expand_path(__FILE__))
+rootdir = File.dirname(testdir)
+libdir = File.join(rootdir, 'lib')
 
-require 'hashish'
+require File.join(testdir, 'testing')
+require File.join(libdir, 'hashish')
 
 
 Testing Hashish do

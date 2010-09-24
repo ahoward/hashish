@@ -12,6 +12,7 @@ $:.unshift(rootdir) unless $:.include?(rootdir)
 
 def Testing(*args, &block)
   Class.new(Test::Unit::TestCase) do
+
     def self.slug_for(*args)
       string = args.flatten.compact.join('-')
       words = string.to_s.scan(%r/\w+/)
@@ -20,10 +21,14 @@ def Testing(*args, &block)
       words.join('-').downcase
     end
 
-    @@testing_subclass_count = 0 unless defined?(@@testing_subclass_count) 
-    @@testing_subclass_count += 1
+    def self.testing_subclass_count
+      @@testing_subclass_count = '0' unless defined?(@@testing_subclass_count) 
+      @@testing_subclass_count
+    end
+
+    self.testing_subclass_count.succ!
     slug = slug_for(*args).gsub(%r/-/,'_')
-    name = ['TESTING', '%03d' % @@testing_subclass_count, slug].delete_if{|part| part.empty?}.join('_')
+    name = ['TESTING', '%03d' % self.testing_subclass_count, slug].delete_if{|part| part.empty?}.join('_')
     name = name.upcase!
     const_set(:Name, name)
     def self.name() const_get(:Name) end
