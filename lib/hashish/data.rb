@@ -5,27 +5,51 @@ module Hashish
     attr_accessor :name
     attr_accessor :errors
     attr_accessor :validations
-    attr_reader :form
+    attr_accessor :form
 
     def initialize(*args, &block)
-      data = self
-      options = args.last.is_a?(Hash) ? args.pop : {}
+      hash = args.last.is_a?(Hash) ? args.pop : {}
+      @name = args.join('-') unless args.empty?
 
-      @name = 
-        case args.size
-          when 0
-            options.keys.first if options.size==1
-          else
-            args.shift
-        end
-      @name ||= (options.is_a?(Data) ? options.name : 'data')
+      if hash.is_a?(Data)
+        clone = hash.clone
+        @name ||= clone.name
+        @errors = clone.errors
+        @validations = clone.validations
+        @status = clone.status
+      else
+        data = self
+        @name ||= 'data'
+        @errors = Errors.new(data)
+        @validations = Validations.new(data)
+        @form = Form.new(data)
+        @status = Status.ok
+      end
 
-      @errors = Errors.new(data)
-      @validations = Validations.new(data)
-      @form = Form.new(data)
-      @status = Status.ok
+      super(hash)
+    end
 
-      super(options)
+    def clone
+      data = new
+      data.name = self.name
+      data.errors = self.errors.clone
+      data.validations = self.validations.clone
+      data.form = self.form.clone
+      data.status = self.status.clone
+      data
+    end
+
+    def ==(other)
+      name == other.name &&
+      errors == other.errors &&
+      validations == other.validations &&
+      form == other.form &&
+      status == other.status &&
+      super
+    end
+
+    def dup
+      clone
     end
 
     def status(*args)
@@ -196,11 +220,7 @@ module Hashish
   end
 
   def data(*args, &block)
-    if args.size == 1 and args.first.is_a?(Data)
-      data = args.first
-    else
-      data = Hashish::Data.new(*args)
-    end
+    data = Hashish::Data.new(*args)
     block.call(data) if block
     data
   end

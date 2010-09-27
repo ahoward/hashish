@@ -294,6 +294,23 @@ Testing Hashish do
     assert{ not data.valid? }
   end
 
+# cloning
+#
+  testing 'simple cloning' do
+    data = Hashish.data(:foo)
+    clone = assert{ data.clone }
+    assert{ data.name == clone.name }
+    assert{ data.errors == clone.errors }
+    assert{ data.errors.object_id != clone.errors.object_id }
+    assert{ data.validations == clone.validations }
+    assert{ data.validations.object_id != clone.validations.object_id }
+    assert{ data.form == clone.form }
+    assert{ data.form.object_id != clone.form.object_id }
+    assert{ data.status == clone.status }
+    assert{ data.status.object_id != clone.status.object_id }
+    assert{ data == clone }
+  end
+
 # api
 #
   testing 'that the api dsl allows endpoint definition' do
@@ -330,5 +347,6 @@ Testing Hashish do
     assert{ result[:bar] = '42.0' }
     assert{ result[:baz] = 'forty-two' }
   end
+
 
 end

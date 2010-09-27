@@ -9,6 +9,10 @@ module Hashish
         @options = Hashish.hash_for(options || {})
         super(&block)
       end
+
+      def block
+        self
+      end
     end
 
     attr 'data'
@@ -84,6 +88,18 @@ module Hashish
       callback = Validations::Callback.new(options, &block)
       args.push(callback)
       set(*args)
+    end
+
+    def clone
+      clone = Validations.new(data)
+      depth_first_each do |keys, callback|
+        args = [*keys]
+        options = callback.options
+        block = callback.block
+        args.push(options)
+        clone.add(*args, &block)
+      end
+      clone
     end
   end
 end

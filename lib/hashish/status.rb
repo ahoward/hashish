@@ -123,6 +123,10 @@ module Hashish
       end
     end
 
+    def clone
+      clone = Status.for(code)
+    end
+
     def Status.for(*args)
       if args.size >= 2
         code = args.shift

@@ -9,6 +9,14 @@ module Hashish
         @data = data
       end
 
+      def clone
+        clone = Form.new(data)
+      end
+
+      def ==(other)
+        data.object_id == other.data.object_id
+      end
+
       def errors
         data.errors
       end

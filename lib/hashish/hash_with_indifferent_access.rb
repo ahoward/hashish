@@ -111,13 +111,19 @@ module Hashish
     def symbolize_keys!; self end
     def to_options!; self end
 
-    # Convert to a Hash with String keys.
+  # Convert to a Hash with String keys.
+  #
     def to_hash
-      Hash.new(default).merge(self)
+      hash = Hash.new(default)
+      each do |key, val|
+        val = val.to_hash if val.respond_to?(:to_hash)
+        hash[key.to_s] = val
+      end
+      hash
     end
 
     def =~(other)
-      self == coerce(other)
+      to_hash == coerce(other).to_hash
     end
 
     protected

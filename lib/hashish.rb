@@ -77,6 +77,10 @@
       Hashish.data(*args, &block)
     end
 
+    def Hash.ish(*args, &block)
+      Hashish.data(*args, &block)
+    end
+
     def H(*args, &block)
       Hashish.data(*args, &block)
     end

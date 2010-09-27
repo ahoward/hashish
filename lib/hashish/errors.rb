@@ -100,6 +100,16 @@ module Hashish
     end
     alias_method 'add_to_base', 'add'
 
+    def clone
+      clone = Errors.new(data)
+      depth_first_each do |keys, message|
+        args = [*keys]
+        args.push(message)
+        clone.add(*args)
+      end
+      clone
+    end
+
     def add!(*args)
       options = Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})
       options[:sticky] = true
