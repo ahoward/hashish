@@ -220,7 +220,13 @@ module Hashish
   end
 
   def data(*args, &block)
-    data = Hashish::Data.new(*args)
+    flattened = args.flatten
+    data =
+      if flattened.size == 1 and flattened.first.is_a?(Data)
+        flattened.first.clone
+      else
+        Hashish::Data.new(*args)
+      end
     block.call(data) if block
     data
   end
