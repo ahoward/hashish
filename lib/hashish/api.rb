@@ -135,13 +135,8 @@ module Hashish
           arity = block.arity
 
           define_method(name) do |*args|
-            args.flatten!
-            params = args.shift || {}
-            result = args.shift || {}
-            raise(ArgumentError, "#{ params.class.name }(#{ params.inspect })") unless params.is_a?(Hash)
-            raise(ArgumentError, "#{ result.class.name }(#{ result.inspect })") unless result.is_a?(Hash)
-            params = Hashish.data_for(params)
-            result = Hashish.data_for(result)
+            params = Hashish.hash_for(args.shift || {})
+            result = Hashish.hash_for(args.shift || {})
 
             args =
               case arity
@@ -328,9 +323,20 @@ module Hashish
     end
 
     def call(*args)
-      hashes = []
-      2.times{ hashes.push(Hashish.hash_for(args.last.is_a?(Hash) ? args.pop : {})) }
-      params, result = hashes
+      params = result = nil
+      if args.last.is_a?(Hash)
+        result = Hashish.hash_for(args.pop)
+      end
+      if args.last.is_a?(Hash)
+        params = Hashish.hash_for(args.pop)
+      end
+      if params.nil? and result
+        params = result
+        result = nil
+      end
+      params ||= Hashish.hash
+      result ||= Hashish.hash
+
 
       path = Api.absolute_path_for(*args)
       endpoint = endpoints[path]
@@ -344,6 +350,9 @@ module Hashish
 
       raise(NameError, path) unless endpoint
 
+p :params => params.object_id, :result => result.object_id
+p :params => params, :result => result
+puts
       endpoint.call(params, result)
     end
 

@@ -2,9 +2,9 @@ module Hashish
 # TODO - factor this out into 'util' or some such
 #
   def normalized_hash(hash = {})
-    normalized_hash = HashWithIndifferentAccess.new.update(hash)
-    normalized_hash.extend(HashMethods)
-    normalized_hash
+    hash = HashWithIndifferentAccess.for(hash)
+    hash.extend(HashMethods) unless hash.is_a?(HashMethods)
+    hash
   end
   alias_method 'hash_for', 'normalized_hash'
 
