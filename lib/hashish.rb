@@ -16,8 +16,8 @@
 
   require 'tagz'
   require 'arrayfields'
-  require 'orderedhash'
   require 'options'
+  require 'map'
 
 
 # hashish libs
@@ -51,6 +51,7 @@
     load 'exceptions.rb'
     load 'support.rb'
     load 'status.rb'
+    load 'orderedhash.rb'
     load 'hash_with_indifferent_access.rb'
     load 'hash_methods.rb'
     load 'data.rb'

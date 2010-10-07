@@ -19,7 +19,7 @@ Gem::Specification::new do |spec|
   ### spec.add_dependency 'lib', '>= version'
   spec.add_dependency 'tagz'
   spec.add_dependency 'arrayfields'
-  spec.add_dependency 'orderedhash'
+  spec.add_dependency 'map'
   spec.add_dependency 'options'
 
   spec.extensions.push(*[])

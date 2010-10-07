@@ -28,6 +28,7 @@ if defined?(ActiveRecord)
           @to_hashish
         end
         alias_method 'to_h', 'to_hashish'
+        #alias_method 'to_map', 'to_hashish' ### HACK
 
         def to_hashish=(*args)
           to_hashish(*args)
@@ -64,6 +65,7 @@ if defined?(ActiveRecord)
           hash
         end
         alias_method 'to_h', 'to_hashish'
+        #alias_method 'to_map', 'to_hashish' ### HACK
       end
     end
 

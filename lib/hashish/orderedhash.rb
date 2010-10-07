@@ -1,5 +1,5 @@
 module Hashish
-  class HashWithIndifferentAccess < Map
+  class OrderedHash < Map
     def convert_value(value)
       return value.to_hashish if value.respond_to?(:to_hashish)
       super
